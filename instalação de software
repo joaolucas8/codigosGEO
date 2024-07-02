@@ -1,0 +1,53 @@
+@echo off
+enableextensions enabledelayedexpansion
+pushd %~dp0
+
+echo Instalando o notepad
+pushd %USERPROFILE%\Documents\scripts
+start /wait notepad.exe /norestart /S
+popd
+
+echo Instalando o winrarx64
+pushd %USERPROFILE%\Documents\scripts
+start /wait winrarx64.exe /norestart /S 
+popd
+
+echo Instalando o CuteWriter
+pushd %USERPROFILE%\Documents\scripts
+start /wait CuteWriter.exe /norestart /S
+popd
+
+echo Instalando o teamviewerx64
+pushd %USERPROFILE%\Documents\scripts
+start /wait teamviewerx64.exe /norestart /S
+popd
+
+echo Instalando o Chrome
+pushd %USERPROFILE%\Documents\scripts
+start /wait Chrome.exe /norestart /S
+popd
+
+echo Instalando o putty
+pushd %USERPROFILE%\Documents\scripts
+start /wait msiexec /i putty.msi /norestart /qn
+popd
+
+echo Instalando o synergy
+pushd %USERPROFILE%\Documents\scripts
+start /wait msiexec /i synergy.msi /norestart /qn
+popd
+
+echo Instalando o adobe
+pushd %USERPROFILE%\Documents\scripts
+start /wait adobe.exe /quiet /norestart /S
+popd
+
+echo Instalando o all-in-one
+pushd %USERPROFILE%\Documents\scripts
+start /wait all-in-one.iso /quiet /norestart /S /qn
+popd
+
+echo Instalando Office_2016_All_In_one
+pushd D:\
+start /wait Office_2016_All_In_One.exe /quiet /norestart /S
+popd
