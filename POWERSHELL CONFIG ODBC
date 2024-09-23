@@ -1,0 +1,97 @@
+REM powershell DATAENGINNER
+
+if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    # Se não estiver, reinicia o script como administrador
+    $arguments = "& '" + $myinvocation.mycommand.definition + "'"
+    Start-Process powershell -Verb runAs -ArgumentList $arguments
+    exit
+}
+
+Set-ExecutionPolicy Unrestricted
+ 
+# Cria o DNS
+# Informe o IP do lab
+$ip = Read-Host "digite o ip do lab"
+$porta = "3306"
+ 
+Add-OdbcDsn -Name "Geowellex" -DriverName "MySQL ODBC 8.0 ANSI Driver" -DsnType "User" -Platform "64-bit"
+
+# Define as propriedades adicionais do DSN no registro
+$dsnRegistryPath = "HKCU:\Software\ODBC\ODBC.INI\Geowellex"
+Set-ItemProperty -Path $dsnRegistryPath -Name "Description" -Value "SMP-Client"
+Set-ItemProperty -Path $dsnRegistryPath -Name "Server" -Value "$ip"
+Set-ItemProperty -Path $dsnRegistryPath -Name "Database" -Value "Geowellex"
+Set-ItemProperty -Path $dsnRegistryPath -Name "UID" -Value "root"
+Set-ItemProperty -Path $dsnRegistryPath -Name "PWD" -Value "pldt4n79qkj5*"
+
+pause
+
+REM powershell GEOLOGY
+
+if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    # Se não estiver, reinicia o script como administrador
+    $arguments = "& '" + $myinvocation.mycommand.definition + "'"
+    Start-Process powershell -Verb runAs -ArgumentList $arguments
+    exit
+}
+
+Set-ExecutionPolicy Unrestricted
+
+# Cria o DNS
+# Informe o IP do lab
+$ip = Read-Host "digite o ip do lab"
+$porta = "3306"
+ 
+Add-OdbcDsn -Name "Geowellex" -DriverName "MySQL ODBC 8.0 ANSI Driver" -DsnType "User" -Platform "64-bit"
+
+# Define as propriedades adicionais do DSN no registro
+$dsnRegistryPath = "HKCU:\Software\ODBC\ODBC.INI\Geowellex"
+Set-ItemProperty -Path $dsnRegistryPath -Name "Description" -Value "BD-SMPServer"
+Set-ItemProperty -Path $dsnRegistryPath -Name "Server" -Value "$ip"
+Set-ItemProperty -Path $dsnRegistryPath -Name "Database" -Value "Geowellex"
+Set-ItemProperty -Path $dsnRegistryPath -Name "UID" -Value "root"
+Set-ItemProperty -Path $dsnRegistryPath -Name "PWD" -Value "pldt4n79qkj5*"
+
+pause
+
+REM powershell SMP-SERVER
+
+if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    # Se não estiver, reinicia o script como administrador
+    $arguments = "& '" + $myinvocation.mycommand.definition + "'"
+    Start-Process powershell -Verb runAs -ArgumentList $arguments
+    exit
+}
+ 
+Set-ExecutionPolicy Unrestricted
+ 
+# Cria o DNS
+# Informe o IP do lab
+$ip = Read-Host "digite o ip do lab"
+$porta = "3306"
+ 
+Add-OdbcDsn -Name "Geowellex" -DriverName "MySQL ODBC 8.0 ANSI Driver" -DsnType "User" -Platform "64-bit"
+
+# Define as propriedades adicionais do DSN no registro
+$dsnRegistryPath = "HKCU:\Software\ODBC\ODBC.INI\Geowellex"
+Set-ItemProperty -Path $dsnRegistryPath -Name "Description" -Value "BD-SMPServer"
+Set-ItemProperty -Path $dsnRegistryPath -Name "Server" -Value "$ip"
+Set-ItemProperty -Path $dsnRegistryPath -Name "Database" -Value "Geowellex"
+Set-ItemProperty -Path $dsnRegistryPath -Name "UID" -Value "root"
+Set-ItemProperty -Path $dsnRegistryPath -Name "PWD" -Value "pldt4n79qkj5*"
+
+pause
+
+REM ADICIONANDO WORKGROP POWERSHELL
+
+if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    # Se não estiver, reinicia o script como administrador
+    $arguments = "& '" + $myinvocation.mycommand.definition + "'"
+    Start-Process powershell -Verb runAs -ArgumentList $arguments
+    exit
+}
+
+Set-ExecutionPolicy Unrestricted
+
+$WorkgroupName = "GEOWELLEX"
+ Add-Computer -WorkgroupName $WorkgroupName
