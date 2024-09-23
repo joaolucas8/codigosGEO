@@ -1,0 +1,438 @@
+@echo off
+REM Eleva o script para rodar como administrador
+REM Verifica se o script está sendo executado como administrador
+openfiles >nul 2>&1
+if %errorlevel% NEQ 0 (
+    echo Este script precisa ser executado como administrador.
+    pause
+    exit /b
+)
+
+REM Altera a política de execução do PowerShell para Unrestricted
+powershell -Command "Set-ExecutionPolicy Unrestricted -Force"
+
+REM exibe a nova política de execução
+powershell -Command "Get-ExecutionPolicy"
+
+echo A política de execução foi alterada para Unrestricted.
+
+timeout 3
+
+mode con lines=22 col=86
+
+:: Primeira Parte: Reduzir o Volume Existente
+
+:: Listar discos disponíveis
+echo list disk > list.txt
+diskpart /s list.txt
+del /f list.txt
+echo:
+
+:: Listar volumes no disco selecionado
+echo list volume > list_volumes.txt
+echo select disk 0 >> list_volumes.txt
+diskpart /s list_volumes.txt
+del /f list_volumes.txt
+
+:: Criar comandos para reduzir o volume
+echo select disk 0 > reduce.txt
+echo select volume 0 >> reduce.txt
+echo shrink desired=120000 >> reduce.txt
+
+:: Executar comandos para reduzir o volume
+diskpart /s reduce.txt
+del /f reduce.txt
+
+echo:
+echo Operacao de reducao concluida.
+
+:: Segunda Parte: Criar um Novo Volume Simples no Espaco Nao Alocado
+
+:: Criar comandos para criar uma nova partição
+echo select disk 0 > create_volume.txt
+echo create partition primary size=120000 >> create_volume.txt
+echo format fs=ntfs quick >> create_volume.txt
+echo assign >> create_volume.txt
+
+:: Executar comandos para criar a nova partição
+diskpart /s create_volume.txt
+del /f create_volume.txt
+
+echo:
+echo Operacao de criacao do volume concluida.
+
+
+REM configuracao padrao
+@echo off
+
+Powershell.exe -File "%~dp0workgroup.ps1"
+
+REM Definir a variável com o novo nome do computador
+set NovoNome=SMPSERVER-PC
+
+REM Exibir o nome atual do computador
+echo O nome atual do computador é: %computername%
+wmic computersystem where name="%computername%" call rename name="%NovoNome%"
+
+REM Verificar se o comando de renomeação foi bem-sucedido
+if %errorlevel% neq 0 (
+    echo Falha ao renomear o computador.
+    exit /b %errorlevel%
+)
+
+timeout 5
+
+
+REM Desabilitar o Firewall para o perfil de domínio
+netsh advfirewall set domainprofile state off
+
+REM Desabilitar o Firewall para o perfil privado
+netsh advfirewall set privateprofile state off
+
+REM Desabilitar o Firewall para o perfil público
+netsh advfirewall set publicprofile state off
+
+REM Exibir mensagem de conclusão
+echo Firewall do Windows desabilitado para todos os perfis.
+
+
+
+REM Este script desabilita o horário automático no Windows.
+
+REM Desabilitar a sincronização automática de horário
+reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters" /v Type /t REG_SZ /d NoSync /f
+
+REM Desabilitar a atualização automática de fuso horário
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\DateTime\AutoTimeZoneUpdate" /v Enabled /t REG_DWORD /d 0 /f
+
+REM Verificar se os comandos foram bem-sucedidos
+if %errorlevel% neq 0 (
+    echo Falha ao desabilitar o horário automático.
+    pause
+    exit /b %errorlevel%
+)
+
+REM Exibir mensagem de conclusão
+echo Horario automatico desabilitado com sucesso.
+
+
+@echo off
+REM Criar um novo plano de energia baseado no "Alto desempenho"
+powercfg /duplicatescheme 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+
+REM Capturar o GUID do novo plano de energia
+for /f "tokens=2 delims={}" %%i in ('powercfg /list ^| find "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"') do (
+    set GUID=%%i
+)
+
+REM Renomear o plano para "Alto Desempenho Personalizado"
+powercfg /changename %GUID% "Alto Desempenho Personalizado"
+
+REM Definir o novo plano como ativo
+powercfg /setactive %GUID%
+
+REM Configurar o plano de energia para nunca desligar o vídeo (em modo AC - conectado à energia)
+powercfg /change monitor-timeout-ac 0
+
+REM Configurar o plano de energia para nunca desligar o vídeo (em modo DC - bateria)
+powercfg /change monitor-timeout-dc 0
+
+REM Configurar o plano de energia para nunca suspender a atividade do computador (em modo AC - conectado à energia)
+powercfg /change standby-timeout-ac 0
+
+REM Configurar o plano de energia para nunca suspender a atividade do computador (em modo DC - bateria)
+powercfg /change standby-timeout-dc 0
+
+REM Exibir mensagem de conclusão
+echo Plano de energia "Alto Desempenho Personalizado" criado e configurado com sucesso.
+
+
+
+REM Este script desabilita as atualizações automáticas do Windows.
+
+REM Criar a chave de registro para desabilitar as atualizações automáticas
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v NoAutoUpdate /t REG_DWORD /d 1 /f
+
+REM Verificar se o comando foi bem-sucedido
+if %errorlevel% neq 0 (
+    echo Falha ao desabilitar as atualizações automáticas do Windows.
+    pause
+    exit /b %errorlevel%
+)
+
+REM Exibir mensagem de conclusão
+echo As atualizacoes automaticas do Windows foram desabilitadas
+
+timeout /t 10
+
+
+
+@echo off
+echo Instalando o Framework
+pushd "F:\Scripts SERVER\requeriments"
+start /wait Framework.exe /quiet
+popd
+
+echo Instalando o MS201032
+pushd "F:\Scripts SERVER\requeriments"
+start /wait MS201032.exe /quiet
+popd
+
+echo Instalando o MS201064
+pushd "F:\Scripts SERVER\requeriments"
+start /wait MS201064.exe /quiet
+popd
+
+echo Instalando o MS201332
+pushd "F:\Scripts SERVER\requeriments"
+start /wait MS201332.exe /quiet
+popd
+
+echo Instalando o MS201364
+pushd "F:\Scripts SERVER\requeriments"
+start /wait MS201364.exe /quiet
+popd
+
+echo Instalando o MS201564
+pushd "F:\Scripts SERVER\requeriments"
+start /wait MS201564.exe /quiet
+popd
+
+echo Instalando o MSredistributable32
+pushd "F:\Scripts SERVER\requeriments"
+start /wait MSredistributable32.exe /quiet
+popd
+
+echo Instalando o MSredistributable64
+pushd "F:\Scripts SERVER\requeriments"
+start /wait MSredistributable64.exe /quiet
+popd
+
+timeout 5
+
+
+REM banco de dados
+@echo off
+
+netsh wlan disconnect
+
+echo "O wifi foi desconectado!"
+
+netsh interface show interface
+netsh interface set interface "Ethernet" admin=disable
+echo "Rede Ethernet desativada"
+
+timeout 3
+
+echo instalando o SQL
+pushd "F:\Scripts SERVER"
+start /wait msiexec /i mysqlc.msi /qn
+
+echo SQL Server foi instalado com sucesso
+
+timeout 5
+
+pushd "C:\Program Files (x86)\MySQL\MySQL Installer for Windows"
+
+MySQLInstallerConsole.exe install -silent server;8.0.18; workbench;8.0.18; Connector/ODBC;8.0.18;x64 Notifier;1.1.8;x86; Shell;8.0.18;x64
+
+timeout 5
+
+MySQLInstallerConsole.exe configure -silent server;8.0.18;x64:passwd=pldt4n79qkj5*
+
+REM banco de dados
+@echo off
+
+echo instalando o SQL
+pushd "F:\Scripts SERVER"
+start /wait msiexec /i sqlODBC.msi /qn
+
+echo SQL Server foi instalado com sucesso
+
+timeout 5
+
+
+REM configura odbc via powershell após a instalação
+Powershell.exe -File "%~dp0configodbc.ps1"
+
+timeout 5
+netsh wlan disconnect
+
+echo "O wifi foi ativado!"
+
+netsh interface show interface
+netsh interface set interface "Ethernet" admin=enable
+echo "Rede Ethernet ativa"
+
+
+timeout 3
+
+pushd "C:\Program Files\MySQL\MySQL Server 8.0\bin"
+
+mysql -u root -ppldt4n79qkj5* sys < "F:\Scripts SERVER\SMP_V2.6.42\Requirements\Schema\Schema SMPServer V2.6.42.sql"
+
+
+@echo off
+cls
+
+REM Define o nome da tarefa e o caminho do script de backup
+set TAREFA_NOME=Backup BD
+
+@echo off
+REM Define o caminho do arquivo de origem e destino
+set "ORIGEM=F:\scripts SERVER\SMP_V2.6.42\Requirements"
+set "DESTINO=C:\Program Files (x86)\GeoWellex\bkp_script.bat"
+
+REM Cria o diretório de destino se não existir
+if not exist "C:\Program Files (x86)\GeoWellex\" mkdir "C:\Program Files (x86)\GeoWellex"
+
+REM Copia o arquivo de origem para o diretório de destino
+copy "%ORIGEM%" "%DESTINO%"
+
+REM Verifica se a cópia foi bem-sucedida
+if %ERRORLEVEL% neq 0 (
+    echo Erro ao copiar o arquivo. Verifique o caminho de origem e destino.
+    pause
+    exit /b %ERRORLEVEL%
+)
+
+REM Define o nome da tarefa
+set "TAREFA_NOME=Backup BD"
+
+REM Cria a tarefa agendada
+schtasks /create /tn "%TAREFA_NOME%" /tr "%DESTINO%" /sc daily /st 00:00 /rl HIGHEST /f
+
+REM Verifica se a criação da tarefa foi bem-sucedida
+if %ERRORLEVEL% neq 0 (
+    echo Erro ao criar a tarefa agendada. Verifique os parâmetros e tente novamente.
+    pause
+    exit /b %ERRORLEVEL%
+)
+
+REM Exibe uma mensagem de sucesso
+echo O arquivo foi copiado para "%DESTINO%" e a tarefa agendada foi criada com sucesso para executar o backup diariamente às 00:00:00.
+
+timeout 3
+
+
+
+@echo off
+
+echo Instalando NIPackageManager24.5.0
+pushd "F:\scripts SERVER\NIdrivers"
+start /wait NI24.5.0.exe --quiet --accept-eulas --prevent-reboot
+
+echo Instalando o NI LabVIEW RunTime 2019
+pushd "F:\scripts SERVER\NIdrivers\NILABVIEW"
+start /wait Install.exe --quiet --accept-eulas --prevent-reboot
+popd
+
+echo Instalando o NI CompactRio
+pushd "F:\scripts SERVER\NIdrivers\NI-compactrio"
+start /wait Installrio.exe --quiet --accept-eulas --prevent-reboot
+
+timeout 3
+
+
+
+@echo off
+setlocal enabledelayedexpansion
+
+echo Instalando o SMP SERVER
+
+rem Navega até o diretório do instalador
+pushd "F:\scripts SERVER\SMP_V2.6.42\Server\installer\64bits"
+
+rem Inicia o instalador com as opções especificadas
+start /wait setup.exe /q /acceptlicenses yes /r:n
+
+rem Volta ao diretório anterior
+popd
+
+echo SMP SERVER instalado com sucesso!
+
+timeout 5
+
+
+
+@echo off
+
+echo Instalando o adobe
+pushd "F:\scripts SERVER\softwares basicos"
+start /wait adobe.exe /quiet /norestart /S
+popd
+
+echo Instalando o Chrome
+pushd "F:\scripts SERVER\softwares basicos"
+start /wait Chrome.exe /norestart /S
+popd
+
+echo Instalando o putty
+pushd "F:\scripts SERVER\softwares basicos"
+start /wait msiexec /i putty.msi /norestart /qn
+popd
+
+echo Instalando o teamviewerx64
+pushd "F:\scripts SERVER\softwares basicos"
+start /wait teamviewerx64.exe /norestart /S
+
+echo Instalando o CuteWriter
+pushd "F:\scripts SERVER\softwares basicos"
+start /wait CuteWriter.exe /norestart /silent /q
+popd
+
+echo Instalando o winrarx64
+pushd "F:\scripts SERVER\softwares basicos"
+start /wait winrar-x64-611.exe /norestart /S
+popd
+
+
+echo Instalando o synergy
+pushd "F:\scripts SERVER\softwares basicos"
+start /wait msiexec /i synergy-1-5-0-en-win.msi /norestart /qn
+popd
+
+echo Instalando o notepad
+pushd "F:\scripts SERVER\softwares basicos"
+start /wait notepad.exe /norestart /S
+popd
+
+@echo off
+echo Instalando Java
+pushd "F:\Scripts SERVER"
+start /wait java.exe /qn
+
+@echo off
+echo Instalando GWLito
+pushd "F:\Scripts SERVER"
+start /wait GWLito-Installer.exe /quiet /norestart
+
+
+
+@echo off
+cls
+
+REM Renomear a interface de rede "Ethernet 2" para "DMZ"
+netsh interface set interface name="Ethernet 2" newname="DMZ"
+
+set /p X=informe o numero do lab:
+
+REM Configurar o endereço IP, máscara de sub-rede e gateway padrão na interface DMZ
+netsh interface ip set address name="DMZ" static 172.16.%X%.2 255.255.255.0 172.16.%X%.1
+
+REM Configurar o servidor DNS na interface DMZ
+netsh interface ip set dns name="DMZ" static 172.16.%X%.1 primary
+
+netsh interface ip add dns name="DMZ" 8.8.8.8 index=2
+
+REM Confirmar as configurações de IP
+netsh interface ip show config name="DMZ"
+
+timeout 2
+
+netsh interface set interface name="Ethernet 3" newname="CRIO"
+netsh interface ip set address name="CRIO" static 10.0.10.1 255.255.255.0
+
+pause
+
+
