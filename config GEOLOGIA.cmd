@@ -1,20 +1,32 @@
-
-:::::::::::::::::::::::::::::::::
-::::::PARTICIONAMENTO DO HD::::::
-:::::::::::::::::::::::::::::::::
-
 @echo off
-mode con lines=22 col=86
+REM Eleva o script para rodar como administrador
+REM Verifica se o script está sendo executado como administrador
+openfiles >nul 2>&1
+if %errorlevel% NEQ 0 (
+    echo Este script precisa ser executado como administrador.
+    pause
+    exit /b
+)
 
-:: Primeira Parte: Reduzir o Volume Existente
+REM Altera a política de execução do PowerShell para Unrestricted
+powershell -Command "Set-ExecutionPolicy Unrestricted -Force"
 
-:: Listar discos disponíveis
+REM exibe a nova política de execução
+powershell -Command "Get-ExecutionPolicy"
+
+echo A politica de execucao foi alterada para Unrestricted.
+
+timeout 3
+
+REM Primeira Parte: Reduzir o Volume Existente
+
+REM Listar discos disponíveis
 echo list disk > list.txt
 diskpart /s list.txt
 del /f list.txt
 echo:
 
-:: Listar volumes no disco selecionado
+REM Listar volumes no disco selecionado
 echo list volume > list_volumes.txt
 echo select disk 0 >> list_volumes.txt
 diskpart /s list_volumes.txt
@@ -25,7 +37,7 @@ echo select disk 0 > reduce.txt
 echo select volume 0 >> reduce.txt
 echo shrink desired=120000 >> reduce.txt
 
-:: Executar comandos para reduzir o volume
+REM Executar comandos para reduzir o volume
 diskpart /s reduce.txt
 del /f reduce.txt
 
@@ -34,34 +46,28 @@ echo Operacao de reducao concluida.
 timeout 1
 
 
-:: Segunda Parte: Criar um Novo Volume Simples no Espaco Nao Alocado
+REM Segunda Parte: Criar um Novo Volume Simples no Espaco Nao Alocado
 
-:: Criar comandos para criar uma nova partição
+REM Criar comandos para criar uma nova partição
 echo select disk 0 > create_volume.txt
 echo create partition primary size=120000 >> create_volume.txt
 echo format fs=ntfs quick >> create_volume.txt
 echo assign >> create_volume.txt
 
-:: Executar comandos para criar a nova partição
+REM Executar comandos para criar a nova partição
 diskpart /s create_volume.txt
 del /f create_volume.txt
 
 echo:
-echo Operacao de criacao do volume concluida.
-
-
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-:::::::::::::::::::::::::::::::::
-::::::CONFIGURAÇÃO DATAENGINEER::::::
-:::::::::::::::::::::::::::::::::
+REM Operacao de criacao do volume concluida.
+REM configuração Geology
 
 @echo off
 pushd %~dp0
 Powershell.exe -File "%~dp0workgroup.ps1"
 
 REM Definir a variável com o novo nome do computador
-set NovoNome=GEOLOOGY-PC
+set NovoNome=GEOLOGY-PC
 
 REM Exibir o nome atual do computador
 echo O nome atual do computador é: %computername%
@@ -100,13 +106,13 @@ reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\DateTime\A
 
 REM Verificar se os comandos foram bem-sucedidos
 if %errorlevel% neq 0 (
-    echo Falha ao desabilitar o horário automático.
+    echo Falha ao desabilitar o horario automatico.
     pause
     exit /b %errorlevel%
 )
 
 REM Exibir mensagem de conclusão
-echo Horário automático desabilitado com sucesso.
+echo Horario automatico desabilitado com sucesso.
 
 REM
 
@@ -141,7 +147,6 @@ REM Exibir mensagem de conclusão
 echo Plano de energia "Alto Desempenho Personalizado" criado e configurado com sucesso.
 
 
-
 REM Este script desabilita as atualizações automáticas do Windows.
 
 REM Criar a chave de registro para desabilitar as atualizações automáticas
@@ -149,84 +154,57 @@ reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU
 
 REM Verificar se o comando foi bem-sucedido
 if %errorlevel% neq 0 (
-    echo Falha ao desabilitar as atualizações automáticas do Windows.
+    echo Falha ao desabilitar as atualizacoes automaticas do Windows.
     pause
     exit /b %errorlevel%
 )
 
 REM Exibir mensagem de conclusão
-echo As atualizações automáticas do Windows foram desabilitadas
+echo As atualizacoes automaticas do Windows foram desabilitadas
 
 timeout /t 10
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-:::::::::::::::::::::::::::::::::
-::::COMPARTILHAMENTO DE PASTAS::::
-:::::::::::::::::::::::::::::::::
-
-@echo off
-set "shared_folder=C:\COMPARTILHADA"
-set "username=Todos"
-
-REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\Csc\Parameters" /V FormatDatabase /T REG_DWORD /D 1 /F
-REG ADD "HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa" /V LimitBlankPasswordUse /T REG_DWORD /D 0 /F
-
-rem Etapa 1: Compartilhar a pasta
-echo Compartilhando a pasta %shared_folder%...
-net share COMPARTILHADA="%shared_folder%" /grant:%username%,FULL
-
-rem Etapa 2: Configurar permissões de compartilhamento
-echo Configurando permissões de compartilhamento para o usuário %username%...
-icacls "%shared_folder%" /grant %username%:(OI)(CI)F /T
-
-rem Etapa 3: Configurar permissões de segurança
-echo Configurando permissões de segurança...
-icacls "%shared_folder%" /inheritance:r
-icacls "%shared_folder%" /grant:r %username%:(OI)(CI)F /T
-
 
 REM requerimentos
 
 
 @echo off
 echo Instalando o Framework
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\requeriments"
+pushd "F:\Scripts GEOLOGIA\requeriments"
 start /wait Framework.exe /S
 popd
 
 echo Instalando o MS201032
-pushd %USERPROFILE%\Documents\Scripts GEOLOGIA\requeriments
+pushd "F:\Scripts GEOLOGIA\requeriments"
 start /wait MS201032.exe /silent /quiet /S
 popd
 
 echo Instalando o MS201064
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\requeriments"
+pushd "F:\Scripts GEOLOGIA\requeriments"
 start /wait MS201064.exe /silent /quiet /S 
 popd
 
 echo Instalando o MS201332
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\requeriments"
+pushd "F:\Scripts GEOLOGIA\requeriments"
 start /wait MS201332.exe /silent /quiet /S
 popd
 
 echo Instalando o MS201364
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\requeriments"
+pushd "F:\Scripts GEOLOGIA\requeriments"
 start /wait MS201364.exe /silent /quiet /S
 popd
 
 echo Instalando o MS201564
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\requeriments"
+pushd "F:\Scripts GEOLOGIA\requeriments"
 start /wait MS201564.exe /silent /quiet /S
 popd
 
 echo Instalando o MSredistributable32
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\requeriments"
+pushd "F:\Scripts GEOLOGIA\requeriments"
 start /wait MSredistributable32.exe /silent /quiet /S
 popd
 
 echo Instalando o MSredistributable64
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\requeriments"
+pushd "F:\Scripts GEOLOGIA\requeriments"
 start /wait MSredistributable64.exe /silent /quiet /S
 popd
 
@@ -247,7 +225,7 @@ pushd %~dp0
 echo instalando o SQL
 
 REM Muda o diretório para a pasta de documentos do usuário
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA"
+pushd "F:\Scripts GEOLOGIA"
 
 REM Inicia a instalação do arquivo MSI em modo silencioso e aceita todas as permissões
 start /wait msiexec /i sql.msi /qn
@@ -269,11 +247,7 @@ netsh interface show interface
 netsh interface set interface "Ethernet" admin=enable
 echo "Rede Ethernet ativa"
 
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-::::::::::::::::::::::::::::::::::::::::::::::::::
-:::INSTALAÇÃO DO SISTEMA MUDLOGGIN – SMP CLIENT:::
-::::::::::::::::::::::::::::::::::::::::::::::::::
+REM INSTALAÇÃO DO SISTEMA MUDLOGGIN – SMP CLIENT
 
 @echo off
 setlocal enabledelayedexpansion
@@ -281,7 +255,7 @@ setlocal enabledelayedexpansion
 echo Instalando o SMP Client
 
 rem Navega até o diretório do instalador
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\SMP_V2.6.42\Client\Volume"
+pushd "F:\Scripts GEOLOGIA\SMP_V2.6.42\Client\Volume"
 start /wait setup.exe /q /acceptlicenses yes /r:n
 
 popd
@@ -291,79 +265,64 @@ REM instalacao de softwares basicos
 @echo off
 
 echo Instalando o adobe
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\softwares-basicos"
+pushd "F:\Scripts GEOLOGIA\softwares-basicos"
 start /wait adobe.exe /quiet /norestart /S
 popd
 
 echo Instalando o Chrome
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\softwares-basicos"
+pushd "F:\Scripts GEOLOGIA\softwares-basicos"
 start /wait Chrome.exe /norestart /S
 popd
 
 echo Instalando o putty
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\softwares-basicos"
+pushd "F:\Scripts GEOLOGIA\softwares-basicos"
 start /wait msiexec /i putty.msi /norestart /qn
 popd
 
 echo Instalando o TeamViewer
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIAR\softwares-basicos"
+pushd "F:\Scripts GEOLOGIA\softwares-basicos"
 start /wait TeamViewer.exe /norestart /S
 
 
 echo Instalando o CuteWriter
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\softwares-basicos"
+pushd "F:\Scripts GEOLOGIA\softwares-basicos"
 start /wait CuteWriter.exe /norestart /silent
 popd
 
 echo Instalando o winrar
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\softwares-basicos"
+pushd "F:\Scripts GEOLOGIA\softwares-basicos"
 start /wait winrar.exe /norestart /S
 popd
 
 
 echo Instalando o synergy
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\softwares-basicos"
+pushd "F:\Scripts GEOLOGIA\softwares-basicos"
 start /wait msiexec /i synergy.msi /norestart /qn
 popd
 
 echo Instalando o notepad
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\softwares-basicos"
+pushd "F:\Scripts GEOLOGIA\softwares-basicos"
 start /wait notepad.exe /norestart /S
 popd
 
-echo Instalando o Office_2016_All_In_One
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA\Office"
-start /wait Office_2016_All_In_One.exe /quiet /norestart /S
-popd
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 @echo off
 echo Instalando Java
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA"
-start /wait javaoff.exe /LV* %TEMP%\jreMSI.log
+pushd "F:\Scripts GEOLOGIA"
+start /wait java.exe /qn
 
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-::::::::::::::::::::::::::::::::::::
-:::::::INSTALAÇÃO DO GWLITO:::::::::
-::::::::::::::::::::::::::::::::::::
+REM INSTALAÇÃO DO GWLITO
 
 @echo off
 echo Instalando GWLito
-pushd %USERPROFILE%\Documents\Scripts GEOLOGIA
+pushd "F:\Scripts GEOLOGIA"
 start /wait GWLito-Installer.exe /quiet /norestart
 
-
-
-::::::::::::::::::::::::::::::::::::
-:::::::INSTALAÇÃO DO WINLOG:::::::::
-::::::::::::::::::::::::::::::::::::
+REM INSTALAÇÃO DO WINLOG
 
 @echo off
 
 echo Instalando o winlog
-pushd "%USERPROFILE%\Documents\Scripts GEOLOGIA"
+pushd "F:\Scripts GEOLOGIA"
 start /wait winlog.exe --silent
 
 timeout 10
@@ -371,16 +330,9 @@ timeout 10
 REM Adiciona "C:\Program Files\Oracle\VirtualBox" à variável de ambiente Path
 setx PATH "%PATH%;C:\Program Files\Oracle\VirtualBox"
 
-echo Variável de ambiente adicionada com sucesso.
+echo Variavel de ambiente adicionada com sucesso.
 
 timeout 2
-
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-::::::::::::::::::::::::::::::::::::
-:::IMPORTAÇÃO DA MÁQUINA VIRTUAL::::
-::::::::::::::::::::::::::::::::::::
-
 
 vboxmanage import "%~dp0GLX-Virtual.ova"
 
