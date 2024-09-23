@@ -1,9 +1,79 @@
-
-:::::::::::::::::::::::::::::::::
-::::::PARTICIONAMENTO DO HD::::::
-:::::::::::::::::::::::::::::::::
-
 @echo off
+REM Eleva o script para rodar como administrador
+REM Verifica se o script está sendo executado como administrador
+openfiles >nul 2>&1
+if %errorlevel% NEQ 0 (
+    echo Este script precisa ser executado como administrador.
+    pause
+    exit /b
+)
+
+REM Altera a política de execução do PowerShell para Unrestricted
+powershell -Command "Set-ExecutionPolicy Unrestricted -Force"
+
+REM exibe a nova política de execução
+powershell -Command "Get-ExecutionPolicy"
+
+echo A politica de execucao foi alterada para Unrestricted.
+
+timeout 2
+
+REM requerimentos
+
+echo Instalando o MS201032
+pushd "F:\Scripts DATAENGINEER\requirements"
+start /wait MS201032.exe /silent /quiet /S
+popd
+
+echo Instalando o MS201064
+pushd "F:\Scripts DATAENGINEER\requirements"
+start /wait MS201064.exe /silent /quiet /S 
+popd
+
+echo Instalando o MS201332
+pushd "F:\Scripts DATAENGINEER\requirements"
+start /wait MS201332.exe /silent /quiet /S
+popd
+
+echo Instalando o MS201364
+pushd "F:\Scripts DATAENGINEER\requirements"
+start /wait MS201364.exe /silent /quiet /S
+popd
+
+echo Instalando o MS201564
+pushd "F:\Scripts DATAENGINEER\requirements"
+start /wait MS201564.exe /silent /quiet /S
+popd
+
+echo Instalando o MSredistributable32
+pushd "F:\Scripts DATAENGINEER\requirements"
+start /wait MSredistributable32.exe /silent /quiet /S
+popd
+
+echo Instalando o MSredistributable64
+pushd "F:\Scripts DATAENGINEER\requirements"
+start /wait MSredistributable64.exe /silent /quiet /S
+popd
+
+timeout 3
+
+echo Instalando o winlog
+pushd "F:\Scripts DATAENGINEER"
+start /wait winlog.exe --silent
+
+timeout 5
+
+REM Adiciona "C:\Program Files\Oracle\VirtualBox" à variável de ambiente Path
+setx PATH "%PATH%;C:\Program Files\Oracle\VirtualBox"
+
+echo Variavel de ambiente adicionada com sucesso.
+
+timeout 7
+
+vboxmanage import "%~dp0GLX-Virtual.ova"
+
+timeout 10
+
 mode con lines=22 col=86
 
 :: Primeira Parte: Reduzir o Volume Existente
@@ -49,12 +119,7 @@ del /f create_volume.txt
 echo:
 echo Operacao de criacao do volume concluida.
 
-
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-:::::::::::::::::::::::::::::::::
-::::::CONFIGURAÇÃO DATAENGINEER::::::
-:::::::::::::::::::::::::::::::::
+REM CONFIGURAÇÃO DATAENGINEER
 
 @echo off
 pushd %~dp0
@@ -76,7 +141,7 @@ if %errorlevel% neq 0 (
 timeout 5
 
 
-REM Desabilitar o Firewall para o perfil de domínio
+REM Desabilitar o Firewall para o perfil de dominio
 netsh advfirewall set domainprofile state off
 
 REM Desabilitar o Firewall para o perfil privado
@@ -106,7 +171,7 @@ if %errorlevel% neq 0 (
 )
 
 REM Exibir mensagem de conclusão
-echo Horário automático desabilitado com sucesso.
+echo Horario automatico desabilitado com sucesso.
 
 REM
 
@@ -155,15 +220,11 @@ if %errorlevel% neq 0 (
 )
 
 REM Exibir mensagem de conclusão
-echo As atualizações automáticas do Windows foram desabilitadas
+echo As atualizacoes automaticas do Windows foram desabilitadas
 
 timeout /t 10
 
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-:::::::::::::::::::::::::::::::::
-::::COMPARTILHAMENTO DE PASTAS::::
-:::::::::::::::::::::::::::::::::
+REM COMPARTILHAMENTO DE PASTAS
 
 @echo off
 set "shared_folder=C:\COMPARTILHADA"
@@ -177,58 +238,13 @@ echo Compartilhando a pasta %shared_folder%...
 net share COMPARTILHADA="%shared_folder%" /grant:%username%,FULL
 
 rem Etapa 2: Configurar permissões de compartilhamento
-echo Configurando permissões de compartilhamento para o usuário %username%...
+echo Configurando permissoes de compartilhamento para o usuario %username%...
 icacls "%shared_folder%" /grant %username%:(OI)(CI)F /T
 
 rem Etapa 3: Configurar permissões de segurança
-echo Configurando permissões de segurança...
+echo Configurando permissoes de segurança...
 icacls "%shared_folder%" /inheritance:r
 icacls "%shared_folder%" /grant:r %username%:(OI)(CI)F /T
-
-
-REM requerimentos
-
-
-@echo off
-echo Instalando o Framework
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\requirements"
-start /wait Framework.exe /S
-popd
-
-echo Instalando o MS201032
-pushd %USERPROFILE%\Documents\script DATAENGINEER\requirements
-start /wait MS201032.exe /silent /quiet /S
-popd
-
-echo Instalando o MS201064
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\requirements"
-start /wait MS201064.exe /silent /quiet /S 
-popd
-
-echo Instalando o MS201332
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\requirements"
-start /wait MS201332.exe /silent /quiet /S
-popd
-
-echo Instalando o MS201364
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\requirements"
-start /wait MS201364.exe /silent /quiet /S
-popd
-
-echo Instalando o MS201564
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\requirements"
-start /wait MS201564.exe /silent /quiet /S
-popd
-
-echo Instalando o MSredistributable32
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\requirements"
-start /wait MSredistributable32.exe /silent /quiet /S
-popd
-
-echo Instalando o MSredistributable64
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\requirements"
-start /wait MSredistributable64.exe /silent /quiet /S
-popd
 
 timeout 5
 
@@ -247,10 +263,11 @@ pushd %~dp0
 echo instalando o SQL
 
 REM Muda o diretório para a pasta de documentos do usuário
-pushd "%USERPROFILE%\Documents\script DATAENGINEER"
+pushd "F:\Scripts DATAENGINEER"
+
 
 REM Inicia a instalação do arquivo MSI em modo silencioso e aceita todas as permissões
-start /wait msiexec /i sql.msi /qn
+start /wait msiexec /i mysql-connector-odbc-8.0.18-winx64.msi /qn
 
 echo SQL Server foi instalado com sucesso
 
@@ -269,100 +286,64 @@ netsh interface show interface
 netsh interface set interface "Ethernet" admin=enable
 echo "Rede Ethernet ativa"
 
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-::::::::::::::::::::::::::::::::::::::::::::::::::
-:::INSTALAÇÃO DO SISTEMA MUDLOGGIN – SMP CLIENT:::
-::::::::::::::::::::::::::::::::::::::::::::::::::
-
+REM SMPCLIENT
 @echo off
 setlocal enabledelayedexpansion
 
 echo Instalando o SMP Client
 
 rem Navega até o diretório do instalador
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\SMP_V2.6.42\Client\Volume"
+pushd "F:\Scripts DATAENGINEER\SMP_V2.6.42\Client\Volume"
+
 start /wait setup.exe /q /acceptlicenses yes /r:n
 
 popd
 
 timeout 5
+
+
 REM instalacao de softwares basicos
 @echo off
 
 echo Instalando o adobe
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\softwares-basicos"
+pushd "F:\Scripts DATAENGINEER\softwares-basicos"
 start /wait adobe.exe /quiet /norestart /S
 popd
 
 echo Instalando o Chrome
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\softwares-basicos"
+pushd "F:\Scripts DATAENGINEER\softwares-basicos"
 start /wait Chrome.exe /norestart /S
 popd
 
 echo Instalando o putty
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\softwares-basicos"
+pushd "F:\Scripts DATAENGINEER\softwares-basicos"
 start /wait msiexec /i putty.msi /norestart /qn
 popd
 
 echo Instalando o TeamViewer
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\softwares-basicos"
+pushd "F:\Scripts DATAENGINEER\softwares-basicos"
 start /wait TeamViewer.exe /norestart /S
 
 
 echo Instalando o CuteWriter
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\softwares-basicos"
+pushd "F:\Scripts DATAENGINEER\softwares-basicos"
 start /wait CuteWriter.exe /norestart /silent
 popd
 
 echo Instalando o winrar
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\softwares-basicos"
+pushd "F:\Scripts DATAENGINEER\softwares-basicos"
 start /wait winrar.exe /norestart /S
 popd
 
 
 echo Instalando o synergy
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\softwares-basicos"
+pushd "F:\Scripts DATAENGINEER\softwares-basicos"
 start /wait msiexec /i synergy.msi /norestart /qn
 popd
 
 echo Instalando o notepad
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\softwares-basicos"
+pushd "F:\Scripts DATAENGINEER\softwares-basicos"
 start /wait notepad.exe /norestart /S
 popd
-
-echo Instalando o Office_2016_All_In_One
-pushd "%USERPROFILE%\Documents\script DATAENGINEER\Office"
-start /wait Office_2016_All_In_One.exe /quiet /norestart /S
-popd
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-::::::::::::::::::::::::::::::::::::
-:::::::INSTALAÇÃO DO WINLOG:::::::::
-::::::::::::::::::::::::::::::::::::
-
-@echo off
-
-echo Instalando o winlog
-pushd "%USERPROFILE%\Documents\script DATAENGINEER"
-start /wait winlog.exe --silent
-
-timeout 10
-
-REM Adiciona "C:\Program Files\Oracle\VirtualBox" à variável de ambiente Path
-setx PATH "%PATH%;C:\Program Files\Oracle\VirtualBox"
-
-echo Variável de ambiente adicionada com sucesso.
-
-timeout 2
-
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-::::::::::::::::::::::::::::::::::::
-:::IMPORTAÇÃO DA MÁQUINA VIRTUAL::::
-::::::::::::::::::::::::::::::::::::
-
-
-vboxmanage import "%~dp0GLX-Virtual.ova"
 
 pause
